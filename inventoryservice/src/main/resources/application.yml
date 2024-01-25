@@ -1,6 +1,13 @@
 spring:
   application:
     name: inventory-service
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/inventorydb
+    username: postgres
+    password: password
+
 server:
   port: 8083
+  error:
+    includeMessage: always
 

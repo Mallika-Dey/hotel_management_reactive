@@ -1,5 +1,11 @@
 spring:
   application:
     name: HOTEL-SERVICE
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/hoteldb
+    username: postgres
+    password: password
 server:
   port: 8081
+  error:
+    includeMessage: always
