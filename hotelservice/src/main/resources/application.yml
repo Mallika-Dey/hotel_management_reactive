@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: HOTEL-SERVICE
+server:
+  port: 8081
