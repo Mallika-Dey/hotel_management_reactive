@@ -15,6 +15,5 @@ import org.springframework.data.relational.core.mapping.Table;
 public class RoomType {
     @Id
     private Integer id;
-    private Integer loc_id;
     private String type;
 }
