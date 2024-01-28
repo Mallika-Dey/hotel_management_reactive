@@ -5,11 +5,13 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Table;
 
 @Builder
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@Table("location")
 public class Location {
     @Id
     private Integer id;
