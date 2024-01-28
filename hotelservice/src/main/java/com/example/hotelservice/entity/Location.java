@@ -12,9 +12,8 @@ import org.springframework.data.annotation.Id;
 @AllArgsConstructor
 public class Location {
     @Id
-    private Long id;
+    private Integer id;
     private String district;
-    private Integer availability;
     private Double latitude;
     private Double longitude;
 }

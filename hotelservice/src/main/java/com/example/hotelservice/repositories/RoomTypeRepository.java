@@ -7,5 +7,5 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 
 @Repository
-public interface RoomTypeRepository extends R2dbcRepository<RoomType, Long> {
+public interface RoomTypeRepository extends R2dbcRepository<RoomType, Integer> {
 }

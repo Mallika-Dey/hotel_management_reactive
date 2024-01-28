@@ -14,10 +14,7 @@ import org.springframework.data.relational.core.mapping.Table;
 @Table("room_type")
 public class RoomType {
     @Id
-    private Long id;
+    private Integer id;
     private Integer loc_id;
-    private String amenities;
-    private Integer availability;
-    private Integer max_price;
-    private Integer min_price;
+    private String type;
 }

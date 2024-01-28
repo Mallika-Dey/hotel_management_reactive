@@ -14,10 +14,10 @@ import org.springframework.data.relational.core.mapping.Table;
 @Table("hotel")
 public class Hotel {
     @Id
-    private Long id;
+    private Integer id;
     private Integer loc_id;
     private String amenities;
-    private Integer availability;
+    private Boolean availability;
     private Integer max_price;
     private Integer min_price;
 }

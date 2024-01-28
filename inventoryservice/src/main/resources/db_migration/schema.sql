@@ -9,6 +9,6 @@ CREATE TABLE IF NOT EXISTS hotel_details (
     id SERIAL PRIMARY KEY,
     hotel_id INTEGER,
     room_type_id INTEGER,
-    capacity INTEGER,
+    room_count INTEGER,
     price INTEGER
 );
