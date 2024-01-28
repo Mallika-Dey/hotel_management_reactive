@@ -23,7 +23,8 @@ public class HotelDetails {
     @Column("room_type_id")
     private Integer roomTypeId;
 
-    private Integer capacity;
+    @Column("room_count")
+    private Integer roomCount;
 
     private Integer price;
 }
