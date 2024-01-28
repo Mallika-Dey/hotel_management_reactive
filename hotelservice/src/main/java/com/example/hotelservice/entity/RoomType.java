@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 @Builder
@@ -15,5 +16,7 @@ import org.springframework.data.relational.core.mapping.Table;
 public class RoomType {
     @Id
     private Integer id;
-    private String type;
+
+    @Column("room_type")
+    private String roomType;
 }
