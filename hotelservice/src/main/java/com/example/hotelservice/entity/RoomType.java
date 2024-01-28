@@ -1,4 +1,4 @@
-package com.example.inventoryservice.entity;
+package com.example.hotelservice.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,13 +11,13 @@ import org.springframework.data.relational.core.mapping.Table;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table("_users")
-public class User {
+@Table("room_type")
+public class RoomType {
     @Id
-    private Integer id;
-
-    private String name;
-    private Integer age;
-    //private double salary;
-
+    private Long id;
+    private Integer loc_id;
+    private String amenities;
+    private Integer availability;
+    private Integer max_price;
+    private Integer min_price;
 }
