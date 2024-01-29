@@ -39,10 +39,10 @@ public class RoomTypeController {
     public Mono<RoomType> createRoomType(@RequestBody CreateRoomTypeDTO createRoomTypeDTO){
         return roomTypeService.createRoomType(createRoomTypeDTO);
     }
+
 //    @PostMapping
-//    public Mono<ServerResponse> createRoomType(@RequestBody CreateRoomTypeDTO createRoomTypeDTO){
-//        return roomTypeService.createRoomType(createRoomTypeDTO)
-//                .flatMap(roomType -> ReactiveResponseHandler.generateResponse("dfdssfddfsdsf", HttpStatus.CREATED, roomType))
-//                .switchIfEmpty(ReactiveResponseHandler.generateResponse("Failed to create room type", HttpStatus.BAD_REQUEST));
+//    public Mono<ResponseEntity<Object>> createRoomType(@RequestBody CreateRoomTypeDTO createRoomTypeDTO){
+//        roomTypeService.createRoomType(createRoomTypeDTO);
+//        return ReactiveResponseHandler.generateResponse("Room Type Created Successfully",HttpStatus.CREATED);
 //    }
 }
