@@ -12,7 +12,7 @@ import java.util.Map;
 import static com.example.hotelservice.utils.Constants.*;
 
 public class ReactiveResponseHandler {
-    public static Mono<ResponseEntity<Object>> generateResponse(String message, HttpStatus status, Object responseObj) {
+    public static ResponseEntity<Object> generateResponse(String message, HttpStatus status, Object responseObj) {
         Map<String, Object> response = new HashMap<>();
         Map<String, Object> meta = new HashMap<>();
 
@@ -26,11 +26,11 @@ public class ReactiveResponseHandler {
             response.put(DATA_KEY, responseObj);
         }
 
-        return Mono.just(ResponseEntity.ok().body(response));
+        return ResponseEntity.status(status).body(response);
     }
 
     // Overloaded method for cases where data is not needed Like Delete etc.
-    public static Mono<ResponseEntity<Object>> generateResponse(String message, HttpStatus status) {
+    public static ResponseEntity<Object> generateResponse(String message, HttpStatus status) {
         return generateResponse(message, status, null);
     }
 }
