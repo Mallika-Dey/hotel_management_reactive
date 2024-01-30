@@ -21,9 +21,8 @@ public class LocationController {
     private final ILocationService locationService;
 
     @PostMapping("/create")
-    public Mono<ResponseEntity<String>> createLocation(@RequestBody LocationDto locationDto) {
+    public Mono<ResponseEntity<Object>> createLocation(@RequestBody LocationDto locationDto) {
         return locationService.createLocation(locationDto)
-                .map(location -> ResponseEntity.status(HttpStatus.CREATED)
-                        .body(location));
+                .map(location -> ReactiveResponseHandler.generateResponse(location, HttpStatus.CREATED));
     }
 }
