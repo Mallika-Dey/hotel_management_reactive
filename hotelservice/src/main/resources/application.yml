@@ -6,6 +6,6 @@ spring:
     username: postgres
     password: password
 server:
-  port: 8081
+  port: 8085
   error:
     includeMessage: always

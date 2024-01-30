@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS hotel (
 
 CREATE TABLE IF NOT EXISTS room_type (
     id SERIAL PRIMARY KEY,
-    type VARCHAR (250)
+    room_type VARCHAR (250)
 );
 
 CREATE TABLE IF NOT EXISTS location (
