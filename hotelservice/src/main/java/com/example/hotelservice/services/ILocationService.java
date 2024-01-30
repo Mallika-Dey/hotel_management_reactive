@@ -5,5 +5,5 @@ import com.example.hotelservice.entity.Location;
 import reactor.core.publisher.Mono;
 
 public interface ILocationService {
-    public Mono<Location> createLocation(LocationDto locationDto);
+    public Mono<String> createLocation(LocationDto locationDto);
 }
