@@ -23,6 +23,7 @@ public class LocationController {
     @PostMapping("/create")
     public Mono<ResponseEntity<Object>> createLocation(@RequestBody LocationDto locationDto) {
         return locationService.createLocation(locationDto)
-                .map(location -> ReactiveResponseHandler.generateResponse(location, HttpStatus.CREATED));
+                .map(location -> ReactiveResponseHandler.generateResponse("location created successfully"
+                        , HttpStatus.CREATED, location));
     }
 }
