@@ -16,6 +16,7 @@ public class Hotel {
     @Id
     private Integer id;
     private Integer locId;
+    private String name;
     private String amenities;
     private Boolean availability;
     private Integer maxPrice;

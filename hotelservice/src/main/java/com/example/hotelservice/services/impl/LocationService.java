@@ -23,7 +23,7 @@ public class LocationService implements ILocationService {
                 .doOnSuccess(location -> logger.info("Location %s saved successfully"))
                 .onErrorMap(throwable -> {
                     logger.error("Error ", throwable);
-                    return new RuntimeException("Failed to create location", throwable);
+                    throw new RuntimeException("Failed to create location", throwable);
                 });
     }
 

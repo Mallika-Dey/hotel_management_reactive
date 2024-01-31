@@ -40,10 +40,9 @@ public class HotelService implements IHotelService {
 //                .map(hotel -> "Hotel Created Successfully");
 //    }
 
-    public Mono<Hotel> createHotel(CreateHotelRequestDTO createHotelRequestDTO){
+    public Mono<Hotel> createHotel(CreateHotelRequestDTO createHotelRequestDTO) {
         return Mono.just(createHotelRequestDTO)
-                .map(this::mapToEntity)
-                .flatMap(hotelRepository::save)
+                .flatMap(createHotelRequestDTO1 -> hotelRepository.save(mapToEntity(createHotelRequestDTO1)))
                 .doOnSuccess(hotel -> logger.info("Location {} saved successfully", hotel))
                 .doOnError(throwable -> {
                     logger.error("Error occurred while creating hotel", throwable);
@@ -52,7 +51,7 @@ public class HotelService implements IHotelService {
     }
 
 
-    private Hotel mapToEntity(CreateHotelRequestDTO createHotelRequestDTO){
+    private Hotel mapToEntity(CreateHotelRequestDTO createHotelRequestDTO) {
         return Hotel
                 .builder()
                 .locId(createHotelRequestDTO.getLocId())
