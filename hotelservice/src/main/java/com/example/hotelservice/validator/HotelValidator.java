@@ -1,7 +1,9 @@
 package com.example.hotelservice.validator;
 
+import com.example.hotelservice.exception.CustomException;
 import com.example.hotelservice.repositories.HotelRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.flogger.Flogger;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
@@ -9,11 +11,15 @@ import reactor.core.publisher.Mono;
  * @author Mallika Dey
  */
 @Component
-@RequiredArgsConstructor
 public class HotelValidator {
-    private HotelRepository hotelRepository;
+    private final HotelRepository hotelRepository;
 
-//    public Mono<Void> checkByHotelName(String hotelName) {
-//        hotelRepository.findByName(hotelName).do()
-//    }
+    public HotelValidator(HotelRepository hotelRepository) {
+        this.hotelRepository = hotelRepository;
+    }
+
+    public void checkByHotelName(String hotelName) {
+        Mono<Boolean> res = hotelRepository.existsByName(hotelName);
+        System.out.println(res);
+    }
 }

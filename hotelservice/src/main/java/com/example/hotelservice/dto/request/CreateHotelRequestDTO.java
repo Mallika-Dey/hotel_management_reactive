@@ -11,5 +11,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CreateHotelRequestDTO {
     private Integer locId;
+    private String name;
     private String amenities;
 }

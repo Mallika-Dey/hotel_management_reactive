@@ -20,7 +20,7 @@ public class LocationService implements ILocationService {
     public Mono<Location> createLocation(LocationDto locationDto) {
         return Mono.just(locationDto)
                 .flatMap(locationDto1 -> locationRepository.save(mapToLocation(locationDto1)))
-                .doOnSuccess(location -> logger.info("Location %s saved successfully"))
+                .doOnSuccess(location -> logger.info("Location {} saved successfully", location.getDistrict()))
                 .onErrorMap(throwable -> {
                     logger.error("Error ", throwable);
                     throw new RuntimeException("Failed to create location", throwable);
