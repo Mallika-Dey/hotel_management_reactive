@@ -17,15 +17,14 @@ public class LocationService implements ILocationService {
     private final LocationRepository locationRepository;
 
     @Override
-    public Mono<String> createLocation(LocationDto locationDto) {
-        return locationRepository
-                .save(mapToLocation(locationDto))
+    public Mono<Location> createLocation(LocationDto locationDto) {
+        return Mono.just(locationDto)
+                .flatMap(locationDto1 -> locationRepository.save(mapToLocation(locationDto1)))
                 .doOnSuccess(location -> logger.info("Location %s saved successfully"))
                 .onErrorMap(throwable -> {
                     logger.error("Error ", throwable);
                     return new RuntimeException("Failed to create location", throwable);
-                })
-                .map(location -> "Location created successfully");
+                });
     }
 
     private Location mapToLocation(LocationDto locationDto) {
