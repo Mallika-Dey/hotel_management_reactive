@@ -46,11 +46,12 @@ public class HotelService implements IHotelService {
 //    }
 
     @Override
-    public Mono<Hotel> createHotel(CreateHotelRequestDTO createHotelRequestDTO) {
-        return Mono.just(createHotelRequestDTO)
-                .flatMap(hotelRequestDTO -> {
-                    hotelValidator.checkByHotelName(hotelRequestDTO.getName());
-                    return hotelRepository.save(mapToEntity(hotelRequestDTO));
+    public Mono<Hotel> createHotel(CreateHotelRequestDTO hotelRequestDTO) {
+        return hotelValidator
+                .checkByHotelName(hotelRequestDTO.getName())
+                .then(Mono.just(hotelRequestDTO))
+                .flatMap(hotelRequestDTO1 -> {
+                    return hotelRepository.save(mapToEntity(hotelRequestDTO1));
                 })
                 .doOnSuccess(hotel -> logger.info("Location {} saved successfully", hotel))
                 .doOnError(throwable -> {

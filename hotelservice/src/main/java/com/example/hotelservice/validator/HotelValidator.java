@@ -1,9 +1,9 @@
 package com.example.hotelservice.validator;
 
+import com.example.hotelservice.entity.Hotel;
 import com.example.hotelservice.exception.CustomException;
+import com.example.hotelservice.exception.NotFoundException;
 import com.example.hotelservice.repositories.HotelRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.flogger.Flogger;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
@@ -18,8 +18,16 @@ public class HotelValidator {
         this.hotelRepository = hotelRepository;
     }
 
-    public void checkByHotelName(String hotelName) {
-        Mono<Boolean> res = hotelRepository.existsByName(hotelName);
-        System.out.println(res);
+    public Mono<Void> checkByHotelName(String hotelName) {
+        return hotelRepository.existsByName(hotelName)
+                .flatMap(
+                        exists -> {
+                            if (exists) {
+                                return Mono.error(new CustomException("Hotel already exists"));
+                            } else {
+                                return Mono.empty();
+                            }
+                        }
+                );
     }
 }

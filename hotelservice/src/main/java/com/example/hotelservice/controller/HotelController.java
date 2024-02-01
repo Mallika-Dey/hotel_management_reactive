@@ -1,7 +1,6 @@
 package com.example.hotelservice.controller;
 
 import com.example.hotelservice.dto.request.CreateHotelRequestDTO;
-import com.example.hotelservice.dto.request.LocationDto;
 import com.example.hotelservice.response.ReactiveResponseHandler;
 import com.example.hotelservice.services.IHotelService;
 import lombok.RequiredArgsConstructor;
