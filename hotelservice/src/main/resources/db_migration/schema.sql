@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS hotel (
     id SERIAL PRIMARY KEY,
     loc_id SERIAL,
+    name VARCHAR (250),
     amenities VARCHAR (250),
     availability BOOLEAN,
     max_price SERIAL,
