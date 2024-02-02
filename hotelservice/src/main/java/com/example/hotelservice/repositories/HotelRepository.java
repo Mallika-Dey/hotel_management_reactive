@@ -10,7 +10,6 @@ import java.util.Optional;
 
 @Repository
 public interface HotelRepository extends R2dbcRepository<Hotel, Integer> {
-    @Query("SELECT CASE WHEN EXISTS (SELECT 1 FROM hotel WHERE name = :hotelName) THEN TRUE ELSE FALSE END")
     Mono<Boolean> existsByName(String hotelName);
 
     Mono<Hotel> findByName(String hotelName);

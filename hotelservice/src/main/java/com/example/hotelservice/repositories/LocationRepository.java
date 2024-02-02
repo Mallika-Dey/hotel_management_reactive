@@ -7,5 +7,7 @@ import reactor.core.publisher.Mono;
 
 @Repository
 public interface LocationRepository extends R2dbcRepository<Location, Integer> {
-    Mono<Boolean> existsByLatitudeAndLongitude(Double latitude, Double longitude);
+    Mono<Boolean> existsByDistrict(String district);
+    Mono<Location> findByDistrict(String district);
+  //  Mono<Location> findById(Integer id);
 }

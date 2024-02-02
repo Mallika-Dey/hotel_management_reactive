@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateHotelRequestDTO {
-    private Integer locId;
+    private String locationName;
     private String name;
     private String amenities;
 }

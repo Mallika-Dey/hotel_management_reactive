@@ -9,9 +9,9 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateHotelResponseDTO {
-    private Integer id;
-    private Integer locId;
+public class HotelResponseDTO {
+    private String hotelName;
+    private String locName;
     private String amenities;
     private Boolean availability;
     private Integer maxPrice;

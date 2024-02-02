@@ -2,8 +2,11 @@ package com.example.hotelservice.services.impl;
 
 import com.example.hotelservice.dto.request.CreateHotelRequestDTO;
 import com.example.hotelservice.dto.request.LocationDto;
+import com.example.hotelservice.dto.response.HotelResponseDTO;
 import com.example.hotelservice.entity.Hotel;
+import com.example.hotelservice.entity.Location;
 import com.example.hotelservice.repositories.HotelRepository;
+import com.example.hotelservice.repositories.LocationRepository;
 import com.example.hotelservice.services.IHotelService;
 import com.example.hotelservice.validator.HotelValidator;
 import org.slf4j.Logger;
@@ -23,48 +26,61 @@ public class HotelService implements IHotelService {
     private static final Logger logger = LoggerFactory.getLogger(RoomTypeService.class);
     private final HotelRepository hotelRepository;
     private final HotelValidator hotelValidator;
+    private final LocationRepository locationRepository;
 
     /**
      * Constructs a HotelService with the provided HotelRepository.
      *
      * @param hotelRepository the repository for room types
      */
-    public HotelService(HotelRepository hotelRepository, HotelValidator hotelValidator) {
+    public HotelService(HotelRepository hotelRepository, HotelValidator hotelValidator, LocationRepository locationRepository) {
         this.hotelRepository = hotelRepository;
         this.hotelValidator = hotelValidator;
+        this.locationRepository = locationRepository;
     }
-
-//    public Mono<String> createHotel(CreateHotelRequestDTO createHotelRequestDTO){
-//        return hotelRepository
-//                .save(mapToEntity(createHotelRequestDTO))
-//                .doOnSuccess(hotel -> logger.info("Location {} saved successfully", hotel))
-//                .onErrorMap(throwable -> {
-//                    logger.error("Error occurred while creating hotel", throwable);
-//                    return new RuntimeException("Failed to create hotel", throwable);
-//                })
-//                .map(hotel -> "Hotel Created Successfully");
-//    }
 
     @Override
     public Mono<Hotel> createHotel(CreateHotelRequestDTO hotelRequestDTO) {
         return hotelValidator
-                .checkByHotelName(hotelRequestDTO.getName())
-                .then(Mono.just(hotelRequestDTO))
-                .flatMap(hotelRequestDTO1 -> {
-                    return hotelRepository.save(mapToEntity(hotelRequestDTO1));
+                .hotelCreateValidation(hotelRequestDTO)
+                .flatMap(location -> {
+                    return hotelRepository.save(mapToEntity(hotelRequestDTO, location.getId()));
                 })
-                .doOnSuccess(hotel -> logger.info("Location {} saved successfully", hotel))
-                .doOnError(throwable -> {
-                    logger.error("Error occurred while creating hotel", throwable);
-                    throw new RuntimeException("Failed to create hotel", throwable);
-                });
+                .doOnRequest(l -> logger.debug("Hotel Create start processing"))
+                .doOnSuccess(hotel -> logger.info("Hotel {} saved successfully", hotel.getName()));
+    }
+
+    @Override
+    public Mono<HotelResponseDTO> getHotelDetails(String hotelName) {
+        return hotelValidator.hotelResponseValidation(hotelName)
+                .flatMap(hotel -> {
+                    return Mono.just(hotelResponseBuilder(hotel));
+                })
+                .doOnRequest(l -> logger.debug("Hotel response start processing"))
+                .doOnSuccess(hotel -> logger.info("Hotel {} saved successfully", hotel.getHotelName()));
+    }
+
+    private HotelResponseDTO hotelResponseBuilder(Hotel hotel){
+        Mono<Location> locationMono =  locationRepository.findById(hotel.getLocId());
+       return mapToHotelDto(hotel, locationMono.block());
+    }
+    private HotelResponseDTO mapToHotelDto(Hotel hotel, Location location){
+        return HotelResponseDTO
+                .builder()
+                .hotelName(hotel.getName())
+                .locName(location.getDistrict())
+                .amenities(hotel.getAmenities())
+                .minPrice(hotel.getMinPrice())
+                .maxPrice(hotel.getMaxPrice())
+                .availability(hotel.getAvailability())
+                .build();
     }
 
 
-    private Hotel mapToEntity(CreateHotelRequestDTO createHotelRequestDTO) {
+    private Hotel mapToEntity(CreateHotelRequestDTO createHotelRequestDTO, Integer locId) {
         return Hotel
                 .builder()
-                .locId(createHotelRequestDTO.getLocId())
+                .locId(locId)
                 .name(createHotelRequestDTO.getName())
                 .amenities(createHotelRequestDTO.getAmenities())
                 .availability(EMPTY_ROOM)
