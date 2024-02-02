@@ -6,10 +6,7 @@ import com.example.hotelservice.services.IHotelService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 @RestController
@@ -24,5 +21,13 @@ public class HotelController {
         return hotelService.createHotel(hotelRequestDTO)
                 .map(hotel -> ReactiveResponseHandler.generateResponse
                         ("Hotel created successfully", HttpStatus.CREATED, hotel));
+    }
+
+    @GetMapping("/get/{hotelName}")
+    public Mono<ResponseEntity<Object>> getHotelDetails(
+            @PathVariable String hotelName) {
+        return hotelService.getHotelDetails(hotelName)
+                .map(hotel -> ReactiveResponseHandler.generateResponse
+                        ("Hotel Details", HttpStatus.OK, hotel));
     }
 }

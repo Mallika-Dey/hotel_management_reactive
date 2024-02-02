@@ -54,17 +54,19 @@ public class HotelService implements IHotelService {
     public Mono<HotelResponseDTO> getHotelDetails(String hotelName) {
         return hotelValidator.hotelResponseValidation(hotelName)
                 .flatMap(hotel -> {
-                    return Mono.just(hotelResponseBuilder(hotel));
+                    return hotelResponseBuilder(hotel);
                 })
                 .doOnRequest(l -> logger.debug("Hotel response start processing"))
-                .doOnSuccess(hotel -> logger.info("Hotel {} saved successfully", hotel.getHotelName()));
+                .doOnSuccess(hotel -> logger.info("Hotel {} saved successfully", hotelName));
     }
 
-    private HotelResponseDTO hotelResponseBuilder(Hotel hotel){
-        Mono<Location> locationMono =  locationRepository.findById(hotel.getLocId());
-       return mapToHotelDto(hotel, locationMono.block());
+    private Mono<HotelResponseDTO> hotelResponseBuilder(Hotel hotel) {
+        return locationRepository
+                .findById(hotel.getLocId())
+                .map(location -> mapToHotelDto(hotel, location));
     }
-    private HotelResponseDTO mapToHotelDto(Hotel hotel, Location location){
+
+    private HotelResponseDTO mapToHotelDto(Hotel hotel, Location location) {
         return HotelResponseDTO
                 .builder()
                 .hotelName(hotel.getName())
