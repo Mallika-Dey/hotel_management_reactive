@@ -9,4 +9,5 @@ public interface IHotelService {
     Mono<Hotel> createHotel(CreateHotelRequestDTO createHotelRequestDTO);
 
     Mono<HotelResponseDTO> getHotelDetails(String hotelName);
+
 }

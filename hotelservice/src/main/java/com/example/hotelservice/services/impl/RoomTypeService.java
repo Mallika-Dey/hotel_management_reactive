@@ -45,7 +45,7 @@ public class RoomTypeService implements IRoomTypeService {
                 .doOnSuccess(roomType -> logger.info("Create Room Successfully"))
                 .onErrorMap(throwable -> {
                     logger.error("Error while creating room");
-                    return new RuntimeException("Fail to create student");
+                    return new RuntimeException("Fail to create room");
                 });
     }
 }
