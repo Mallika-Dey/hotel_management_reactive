@@ -4,6 +4,7 @@ import com.example.hotelservice.dto.request.CheckHotelRequestDTO;
 import com.example.hotelservice.dto.response.CheckHotelResponseDTO;
 import com.example.hotelservice.entity.Hotel;
 import com.example.hotelservice.entity.RoomType;
+import com.example.hotelservice.logic.HotelLogic;
 import com.example.hotelservice.services.IProxyService;
 import com.example.hotelservice.validator.HotelValidator;
 import com.example.hotelservice.validator.RoomTypeValidator;
@@ -17,12 +18,15 @@ import reactor.util.function.Tuple2;
 public class ProxyService implements IProxyService {
     private final HotelValidator hotelValidator;
     private final RoomTypeValidator roomTypeValidator;
+    private final HotelLogic hotelLogic;
 
     @Override
     public Mono<CheckHotelResponseDTO> checkHotelAndRoomType(
             CheckHotelRequestDTO checkHotelRequestDTO) {
         Mono<Hotel> hotel = hotelValidator
-                .findByHotelName(checkHotelRequestDTO.getHotelName());
+                .findByHotelName(checkHotelRequestDTO.getHotelName())
+                .flatMap(hotel1 -> hotelLogic.updateHotelPriceAndAvailability(
+                        hotel1, checkHotelRequestDTO));
 
         Mono<RoomType> roomType = roomTypeValidator
                 .findByRoomTypeName(checkHotelRequestDTO.getRoomType());

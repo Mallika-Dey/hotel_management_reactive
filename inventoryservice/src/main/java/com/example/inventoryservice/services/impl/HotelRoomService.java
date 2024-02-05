@@ -41,7 +41,7 @@ public class HotelRoomService implements IHotelRoomService {
                 .hotelId(hotelResponse.getHotelId())
                 .roomTypeId(hotelResponse.getRoomTypeId())
                 .roomCount(createHotelRoomDTO.getRoomCount())
-                .price(createHotelRoomDTO.getRoomCount())
+                .price(createHotelRoomDTO.getPrice())
                 .build();
     }
 
@@ -50,6 +50,7 @@ public class HotelRoomService implements IHotelRoomService {
                .builder()
                .hotelName(createHotelRoomDTO.getHotelName())
                .roomType(createHotelRoomDTO.getRoomType())
+               .price(createHotelRoomDTO.getPrice())
                .build();
 
       return hotelServiceWebClient.checkHotelAndRoomType(request);

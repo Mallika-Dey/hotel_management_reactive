@@ -11,4 +11,5 @@ import lombok.*;
 public class CheckHotelRequestDTO {
     private String hotelName;
     private String roomType;
+    private Integer price;
 }
