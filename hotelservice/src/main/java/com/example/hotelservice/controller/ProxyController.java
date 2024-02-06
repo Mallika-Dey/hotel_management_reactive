@@ -26,8 +26,6 @@ public class ProxyController {
     @PostMapping("/update/hotel-info")
     public Mono<Void> updateHotelPriceAndAvl(
             @RequestBody UpdateHotelRequestDTO updateHotelRequestDTO) {
-        //   return proxyService.updateHotelPriceAndAvl(updateHotelRequestDTO);
-        System.out.println("reached....................");
-        return Mono.empty();
+        return proxyService.updateHotelPriceAndAvl(updateHotelRequestDTO);
     }
 }

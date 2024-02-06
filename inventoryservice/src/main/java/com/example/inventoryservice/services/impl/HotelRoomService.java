@@ -26,12 +26,10 @@ public class HotelRoomService implements IHotelRoomService {
     }
 
     public Mono<HotelDetails> createHotelRoom(CreateHotelRoomDTO createHotelRoomDTO) {
-        //Mono<CheckHotelResponseDTO> responseDTO = buildInternalCallRequest(createHotelRoomDTO);
+
         return buildInternalCallRequest(createHotelRoomDTO)
                 .flatMap(hotelResponse -> {
                     return dbOperation(hotelResponse, createHotelRoomDTO);
-//                    hotelDetailsRepository.save(mapToHotel(hotelResponse, createHotelRoomDTO));
-//                    return updateHotelInfoInternalCall(createHotelRoomDTO);
                 })
                 .doOnRequest(l -> logger.debug("Hotel Create start processing"))
                 .doOnSuccess(hotel -> {
@@ -40,9 +38,12 @@ public class HotelRoomService implements IHotelRoomService {
     }
 
     private Mono<HotelDetails> dbOperation(CheckHotelResponseDTO hotelResponse, CreateHotelRoomDTO createHotelRoomDTO) {
-        Mono<HotelDetails> hotelDetailsMono = hotelDetailsRepository.save(mapToHotel(hotelResponse, createHotelRoomDTO));
+        Mono<HotelDetails> hotelDetailsMono = hotelDetailsRepository
+                .save(mapToHotel(hotelResponse, createHotelRoomDTO))
+                .cache();
         Mono<Void> updateHotel = updateHotelInfoInternalCall(createHotelRoomDTO);
-        return hotelDetailsMono;
+
+        return Mono.zip(hotelDetailsMono, updateHotel).then(hotelDetailsMono);
     }
 
     private HotelDetails mapToHotel(CheckHotelResponseDTO hotelResponse,
