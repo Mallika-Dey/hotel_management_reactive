@@ -1,6 +1,7 @@
 package com.example.hotelservice.logic;
 
 import com.example.hotelservice.dto.request.CheckHotelRequestDTO;
+import com.example.hotelservice.dto.request.UpdateHotelRequestDTO;
 import com.example.hotelservice.entity.Hotel;
 import com.example.hotelservice.repositories.HotelRepository;
 import org.slf4j.Logger;
@@ -21,8 +22,8 @@ public class HotelLogic {
     }
 
     public Mono<Hotel> updateHotelPriceAndAvailability(
-            Hotel hotel, CheckHotelRequestDTO checkHotelRequestDTO) {
-        return Mono.just(updateToHotel(hotel, checkHotelRequestDTO))
+            Hotel hotel, UpdateHotelRequestDTO requestDto) {
+        return Mono.just(updateToHotel(hotel, requestDto))
                 .flatMap(hotelRepository::save)
                 .doOnSuccess(hotel1 -> logger.info("Hotel updated successfully"))
                 .onErrorMap(throwable -> {
@@ -31,7 +32,7 @@ public class HotelLogic {
                 });
     }
 
-    private Hotel updateToHotel(Hotel hotel, CheckHotelRequestDTO requestDto) {
+    private Hotel updateToHotel(Hotel hotel, UpdateHotelRequestDTO requestDto) {
         hotel.setAvailability(true);
         hotel.setMaxPrice(Math.max(hotel.getMaxPrice(), requestDto.getPrice()));
         hotel.setMinPrice(Math.min(hotel.getMinPrice(), requestDto.getPrice()));

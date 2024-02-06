@@ -2,6 +2,7 @@ package com.example.inventoryservice.services.impl;
 
 import com.example.inventoryservice.dto.request.CheckHotelRequestDTO;
 import com.example.inventoryservice.dto.request.CreateHotelRoomDTO;
+import com.example.inventoryservice.dto.request.UpdateHotelRequestDTO;
 import com.example.inventoryservice.dto.response.CheckHotelResponseDTO;
 import com.example.inventoryservice.entity.HotelDetails;
 import com.example.inventoryservice.repositories.HotelDetailsRepository;
@@ -24,18 +25,28 @@ public class HotelRoomService implements IHotelRoomService {
         this.hotelServiceWebClient = hotelServiceWebClient;
     }
 
-    public Mono<HotelDetails> createHotelRoom(CreateHotelRoomDTO createHotelRoomDTO){
+    public Mono<HotelDetails> createHotelRoom(CreateHotelRoomDTO createHotelRoomDTO) {
         //Mono<CheckHotelResponseDTO> responseDTO = buildInternalCallRequest(createHotelRoomDTO);
         return buildInternalCallRequest(createHotelRoomDTO)
                 .flatMap(hotelResponse -> {
-                   return hotelDetailsRepository.save(mapToHotel(hotelResponse, createHotelRoomDTO));
+                    return dbOperation(hotelResponse, createHotelRoomDTO);
+//                    hotelDetailsRepository.save(mapToHotel(hotelResponse, createHotelRoomDTO));
+//                    return updateHotelInfoInternalCall(createHotelRoomDTO);
                 })
                 .doOnRequest(l -> logger.debug("Hotel Create start processing"))
-                .doOnSuccess(hotel -> logger.info("Hotel {} saved successfully"));
+                .doOnSuccess(hotel -> {
+                    logger.info("Hotel info update in hotel microservice");
+                });
     }
 
-    private HotelDetails mapToHotel(CheckHotelResponseDTO  hotelResponse,
-                                          CreateHotelRoomDTO createHotelRoomDTO){
+    private Mono<HotelDetails> dbOperation(CheckHotelResponseDTO hotelResponse, CreateHotelRoomDTO createHotelRoomDTO) {
+        Mono<HotelDetails> hotelDetailsMono = hotelDetailsRepository.save(mapToHotel(hotelResponse, createHotelRoomDTO));
+        Mono<Void> updateHotel = updateHotelInfoInternalCall(createHotelRoomDTO);
+        return hotelDetailsMono;
+    }
+
+    private HotelDetails mapToHotel(CheckHotelResponseDTO hotelResponse,
+                                    CreateHotelRoomDTO createHotelRoomDTO) {
         return HotelDetails
                 .builder()
                 .hotelId(hotelResponse.getHotelId())
@@ -45,14 +56,23 @@ public class HotelRoomService implements IHotelRoomService {
                 .build();
     }
 
-    private Mono<CheckHotelResponseDTO> buildInternalCallRequest(CreateHotelRoomDTO createHotelRoomDTO){  // will chnage return type to CheckHotelREsponseDTO
-       CheckHotelRequestDTO request = CheckHotelRequestDTO
-               .builder()
-               .hotelName(createHotelRoomDTO.getHotelName())
-               .roomType(createHotelRoomDTO.getRoomType())
-               .price(createHotelRoomDTO.getPrice())
-               .build();
+    private Mono<CheckHotelResponseDTO> buildInternalCallRequest(CreateHotelRoomDTO createHotelRoomDTO) {
+        CheckHotelRequestDTO request = CheckHotelRequestDTO
+                .builder()
+                .hotelName(createHotelRoomDTO.getHotelName())
+                .roomType(createHotelRoomDTO.getRoomType())
+                .price(createHotelRoomDTO.getPrice())
+                .build();
 
-      return hotelServiceWebClient.checkHotelAndRoomType(request);
+        return hotelServiceWebClient.checkHotelAndRoomType(request);
+    }
+
+    private Mono<Void> updateHotelInfoInternalCall(CreateHotelRoomDTO createHotelRoomDTO) {
+        UpdateHotelRequestDTO request = UpdateHotelRequestDTO
+                .builder()
+                .hotelName(createHotelRoomDTO.getHotelName())
+                .price(createHotelRoomDTO.getPrice())
+                .build();
+        return hotelServiceWebClient.updateHotelPriceAndAvl(request);
     }
 }

@@ -1,6 +1,7 @@
 package com.example.inventoryservice.webClient.impl;
 
 import com.example.inventoryservice.dto.request.CheckHotelRequestDTO;
+import com.example.inventoryservice.dto.request.UpdateHotelRequestDTO;
 import com.example.inventoryservice.dto.response.CheckHotelResponseDTO;
 import com.example.inventoryservice.exception.CustomException;
 import com.example.inventoryservice.webClient.HotelServiceWebClient;
@@ -21,6 +22,28 @@ public class HotelServiceWebClientImpl implements HotelServiceWebClient {
 
     public HotelServiceWebClientImpl(WebClient.Builder webclient) {
         this.webclient = webclient.baseUrl("http://localhost:8085");
+    }
+
+
+    public Mono<Void> updateHotelPriceAndAvl(@RequestBody UpdateHotelRequestDTO updateHotelRequestDTO){
+        return webclient
+                .build()
+                .post()
+                .uri("/api/v2/proxy/update/hotel-info")
+                .bodyValue(updateHotelRequestDTO)
+                .retrieve()
+                .bodyToMono(Void.class)
+                .retryWhen(Retry.backoff(2, Duration.ofSeconds(20))
+                        .filter(this::retryableException))
+                .onErrorResume(ex -> {
+                    if (ex instanceof WebClientResponseException) {
+                        WebClientResponseException webClientResponseException = (WebClientResponseException) ex;
+                        String errorMessage = webClientResponseException.getResponseBodyAsString();
+                        throw new CustomException(errorMessage);
+                    } else {
+                        throw new CustomException("Unknown error occurred");
+                    }
+                });
     }
 
     @Override
