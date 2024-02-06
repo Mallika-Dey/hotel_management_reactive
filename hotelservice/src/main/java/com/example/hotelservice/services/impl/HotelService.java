@@ -14,8 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import static com.example.hotelservice.utils.Constants.EMPTY_ROOM;
-import static com.example.hotelservice.utils.Constants.ROOM_PRICE_ZERO;
+import static com.example.hotelservice.utils.Constants.*;
 
 /**
  * Service class for managing Hotel.
@@ -87,7 +86,7 @@ public class HotelService implements IHotelService {
                 .amenities(createHotelRequestDTO.getAmenities())
                 .availability(EMPTY_ROOM)
                 .maxPrice(ROOM_PRICE_ZERO)
-                .minPrice(ROOM_PRICE_ZERO)
+                .minPrice(ROOM_PRICE_MAX)
                 .build();
     }
 }

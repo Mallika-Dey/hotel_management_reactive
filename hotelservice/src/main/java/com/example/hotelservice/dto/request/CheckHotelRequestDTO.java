@@ -10,4 +10,5 @@ import lombok.NoArgsConstructor;
 public class CheckHotelRequestDTO {
     private String hotelName;
     private String roomType;
+    private Integer price;
 }
