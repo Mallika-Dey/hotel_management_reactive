@@ -5,5 +5,5 @@ import com.example.inventoryservice.entity.HotelDetails;
 import reactor.core.publisher.Mono;
 
 public interface IHotelRoomService {
-    public Mono<HotelDetails> createHotelRoom(CreateHotelRoomDTO createHotelRoomDTO);
+    public Mono<Object> createHotelRoom(CreateHotelRoomDTO createHotelRoomDTO);
 }

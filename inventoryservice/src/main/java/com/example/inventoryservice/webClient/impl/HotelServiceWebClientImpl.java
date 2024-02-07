@@ -13,6 +13,8 @@ import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
 
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 public class HotelServiceWebClientImpl implements HotelServiceWebClient {
@@ -24,14 +26,15 @@ public class HotelServiceWebClientImpl implements HotelServiceWebClient {
     }
 
     @Override
-    public Mono<CheckHotelResponseDTO> checkHotelAndRoomType(@RequestBody CheckHotelRequestDTO checkHotelRequestDTO){
+    public Mono<String> checkHotelAndRoomType(@RequestBody CheckHotelRequestDTO checkHotelRequestDTO){
         return webclient
                 .build()
                 .post()
                 .uri("/api/v2/proxy/get/hotel_name_room_type")
                 .bodyValue(checkHotelRequestDTO)
                 .retrieve()
-                .bodyToMono(CheckHotelResponseDTO.class)
+                .bodyToMono(String.class)
+               // .map(this::parseResponse)
                 .retryWhen(Retry.backoff(2, Duration.ofSeconds(20))
                         .filter(this::retryableException))
                 .onErrorResume(ex -> {
@@ -45,6 +48,13 @@ public class HotelServiceWebClientImpl implements HotelServiceWebClient {
                 });
     }
 
+    private Map<String, Object> parseResponse(String responseBody) {
+        // Implement your parsing logic here
+        // For simplicity, I'm just returning a map with a sample key and value
+        Map<String, Object> parsedData = new HashMap<>();
+        parsedData.put("sampleKey", responseBody);
+        return parsedData;
+    }
 
     private boolean retryableException(Throwable ex) {
         if (ex instanceof WebClientResponseException responseException) {
