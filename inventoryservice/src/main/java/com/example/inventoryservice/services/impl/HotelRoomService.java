@@ -7,6 +7,7 @@ import com.example.inventoryservice.dto.response.CheckHotelResponseDTO;
 import com.example.inventoryservice.entity.HotelDetails;
 import com.example.inventoryservice.repositories.HotelDetailsRepository;
 import com.example.inventoryservice.services.IHotelRoomService;
+import com.example.inventoryservice.validator.HotelRoomValidator;
 import com.example.inventoryservice.webClient.HotelServiceWebClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,11 +19,13 @@ public class HotelRoomService implements IHotelRoomService {
 
     private final HotelDetailsRepository hotelDetailsRepository;
     private final HotelServiceWebClient hotelServiceWebClient;
+    private final HotelRoomValidator hotelRoomValidator;
     private static final Logger logger = LoggerFactory.getLogger(HotelRoomService.class);
 
-    public HotelRoomService(HotelDetailsRepository hotelDetailsRepository, HotelServiceWebClient hotelServiceWebClient) {
+    public HotelRoomService(HotelDetailsRepository hotelDetailsRepository, HotelServiceWebClient hotelServiceWebClient, HotelRoomValidator hotelRoomValidator) {
         this.hotelDetailsRepository = hotelDetailsRepository;
         this.hotelServiceWebClient = hotelServiceWebClient;
+        this.hotelRoomValidator = hotelRoomValidator;
     }
 
     public Mono<HotelDetails> createHotelRoom(CreateHotelRoomDTO createHotelRoomDTO) {
@@ -38,9 +41,14 @@ public class HotelRoomService implements IHotelRoomService {
     }
 
     private Mono<HotelDetails> dbOperation(CheckHotelResponseDTO hotelResponse, CreateHotelRoomDTO createHotelRoomDTO) {
-        Mono<HotelDetails> hotelDetailsMono = hotelDetailsRepository
-                .save(mapToHotel(hotelResponse, createHotelRoomDTO))
-                .cache();
+        Mono<HotelDetails> hotelDetailsMono = hotelRoomValidator
+                .validateHotelByRoomType(hotelResponse.getHotelId(), hotelResponse.getRoomTypeId())
+                .flatMap(response -> {
+                    logger.info("****************************8");
+                            return hotelDetailsRepository
+                                    .save(mapToHotel(hotelResponse, createHotelRoomDTO));
+                        }
+                );
         Mono<Void> updateHotel = updateHotelInfoInternalCall(createHotelRoomDTO);
 
         return Mono.zip(hotelDetailsMono, updateHotel).then(hotelDetailsMono);
