@@ -24,8 +24,6 @@ public class HotelRoomValidator {
                 .existsByHotelIdAndRoomTypeId(hotelId, roomId)
                 .flatMap(result -> {
                     if (result) {
-                        System.out.println(result);
-                        System.out.println(hotelId + "  " + roomId);
                         LOGGER.error("Hotel room type already exists");
                         return Mono.error(new CustomException("Hotel room type already exists"));
                     }

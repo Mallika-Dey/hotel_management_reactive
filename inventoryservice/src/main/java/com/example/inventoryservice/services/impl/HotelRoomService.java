@@ -41,17 +41,14 @@ public class HotelRoomService implements IHotelRoomService {
     }
 
     private Mono<HotelDetails> dbOperation(CheckHotelResponseDTO hotelResponse, CreateHotelRoomDTO createHotelRoomDTO) {
-        Mono<HotelDetails> hotelDetailsMono = hotelRoomValidator
-                .validateHotelByRoomType(hotelResponse.getHotelId(), hotelResponse.getRoomTypeId())
-                .flatMap(response -> {
-                    logger.info("****************************8");
-                            return hotelDetailsRepository
-                                    .save(mapToHotel(hotelResponse, createHotelRoomDTO));
-                        }
-                );
+        Mono<Boolean> validate = hotelRoomValidator
+                .validateHotelByRoomType(hotelResponse.getHotelId(), hotelResponse.getRoomTypeId());
+        Mono<HotelDetails> hotelDetailsMono = hotelDetailsRepository
+                .save(mapToHotel(hotelResponse, createHotelRoomDTO))
+                .cache();
         Mono<Void> updateHotel = updateHotelInfoInternalCall(createHotelRoomDTO);
 
-        return Mono.zip(hotelDetailsMono, updateHotel).then(hotelDetailsMono);
+        return Mono.zip(validate, hotelDetailsMono, updateHotel).then(hotelDetailsMono);
     }
 
     private HotelDetails mapToHotel(CheckHotelResponseDTO hotelResponse,
