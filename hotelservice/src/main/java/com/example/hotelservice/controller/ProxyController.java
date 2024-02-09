@@ -1,6 +1,7 @@
 package com.example.hotelservice.controller;
 
 import com.example.hotelservice.dto.request.CheckHotelRequestDTO;
+import com.example.hotelservice.dto.request.UpdateHotelRequestDTO;
 import com.example.hotelservice.dto.response.CheckHotelResponseDTO;
 import com.example.hotelservice.response.ReactiveResponseHandler;
 import com.example.hotelservice.services.IProxyService;
@@ -20,5 +21,11 @@ public class ProxyController {
     public Mono<CheckHotelResponseDTO> getHotelNameAndType(
             @RequestBody CheckHotelRequestDTO checkHotelRequestDTO) {
         return proxyService.checkHotelAndRoomType(checkHotelRequestDTO);
+    }
+
+    @PostMapping("/update/hotel-info")
+    public Mono<Void> updateHotelPriceAndAvl(
+            @RequestBody UpdateHotelRequestDTO updateHotelRequestDTO) {
+        return proxyService.updateHotelPriceAndAvl(updateHotelRequestDTO);
     }
 }
