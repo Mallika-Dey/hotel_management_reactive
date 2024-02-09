@@ -47,14 +47,14 @@ public class HotelServiceWebClientImpl implements HotelServiceWebClient {
     }
 
     @Override
-    public Mono<CheckHotelResponseDTO> checkHotelAndRoomType(@RequestBody CheckHotelRequestDTO checkHotelRequestDTO){
+    public Mono<String> checkHotelAndRoomType(@RequestBody CheckHotelRequestDTO checkHotelRequestDTO){
         return webclient
                 .build()
                 .post()
                 .uri("/api/v2/proxy/get/hotel_name_room_type")
                 .bodyValue(checkHotelRequestDTO)
                 .retrieve()
-                .bodyToMono(CheckHotelResponseDTO.class)
+                .bodyToMono(String.class)
                 .retryWhen(Retry.backoff(2, Duration.ofSeconds(20))
                         .filter(this::retryableException))
                 .onErrorResume(ex -> {
