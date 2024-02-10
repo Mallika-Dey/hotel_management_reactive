@@ -19,9 +19,9 @@ public class HotelRoomValidator {
         this.hotelDetailsRepository = hotelDetailsRepository;
     }
 
-    public Mono<Boolean> validateHotelByRoomType(Integer hotelId, Integer roomId) {
+    public Mono<Boolean> validateHotelByRoomType(Integer hotelId, Integer roomTypeId) {
         return hotelDetailsRepository
-                .existsByHotelIdAndRoomTypeId(hotelId, roomId)
+                .existsByHotelIdAndRoomTypeId(hotelId, roomTypeId)
                 .flatMap(result -> {
                     if (result) {
                         LOGGER.error("Hotel room type already exists");
@@ -30,4 +30,18 @@ public class HotelRoomValidator {
                     return Mono.just(false);
                 });
     }
+
+    public Mono<Integer> isHotelRoomExists(Integer hotelId, Integer roomTypeId) {
+        return hotelDetailsRepository
+                .findByHotelIdAndRoomTypeId(hotelId, roomTypeId)
+                .flatMap(hotelDetails -> {
+                    if (hotelDetails != null) {
+                        return Mono.just(hotelDetails.getHotelId());
+                    } else {
+                        LOGGER.error("Hotel room not exists");
+                        return Mono.error(new CustomException("Hotel room not exists"));
+                    }
+                });
+    }
+
 }
