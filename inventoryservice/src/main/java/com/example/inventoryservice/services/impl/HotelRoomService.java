@@ -32,7 +32,7 @@ public class HotelRoomService implements IHotelRoomService {
     public Mono<HotelDetails> createHotelRoom(CreateHotelRoomDTO createHotelRoomDTO) {
 
         return inventoryMapper.buildInternalCallRequest(
-                createHotelRoomDTO.getHotelName(), createHotelRoomDTO.getRoomType())
+                        createHotelRoomDTO.getHotelName(), createHotelRoomDTO.getRoomType())
                 .flatMap(hotelResponse -> {
                     return inventoryLogic.dbOperation(hotelResponse, createHotelRoomDTO);
                 })
@@ -42,16 +42,17 @@ public class HotelRoomService implements IHotelRoomService {
                 });
     }
 
-    public Mono<Void> createRoomBooked(CreateRoomBookDTO createRoomBookDTO){
+    public Mono<Void> createRoomBooked(CreateRoomBookDTO createRoomBookDTO) {
         Mono<Integer> p = roomBookValidation(createRoomBookDTO);
-        return null;
+//        return null;
+        return Mono.empty();
     }
 
-    public Mono<Integer> roomBookValidation(CreateRoomBookDTO createRoomBookDTO){
+    public Mono<Integer> roomBookValidation(CreateRoomBookDTO createRoomBookDTO) {
         return inventoryMapper.buildInternalCallRequest(
                 createRoomBookDTO.getHotelName(), createRoomBookDTO.getRoomType()
         ).flatMap(hotelAndRoomID -> {
-           return hotelRoomValidator.isHotelRoomExists(hotelAndRoomID.getHotelId(), hotelAndRoomID.getRoomTypeId());
+            return hotelRoomValidator.isHotelRoomExists(hotelAndRoomID.getHotelId(), hotelAndRoomID.getRoomTypeId());
         });
     }
 }

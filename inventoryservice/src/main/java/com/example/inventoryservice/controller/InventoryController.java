@@ -20,13 +20,13 @@ public class InventoryController {
     }
 
     @PostMapping("/create-room")
-    public Mono<ResponseEntity<Object>> createHotelRoom(@RequestBody CreateHotelRoomDTO hotelRoomDTO){
+    public Mono<ResponseEntity<Object>> createHotelRoom(@RequestBody CreateHotelRoomDTO hotelRoomDTO) {
         return hotelRoomService.createHotelRoom(hotelRoomDTO)
                 .map(hotelDetails -> ReactiveResponseHandler.generateResponse("Room create Successfully", HttpStatus.CREATED));
     }
 
     @PostMapping("/room-book")
-    public Mono<ResponseEntity<Object>> createRoomBook(@RequestBody CreateRoomBookDTO roomBookDTO){
+    public Mono<ResponseEntity<Object>> createRoomBook(@RequestBody CreateRoomBookDTO roomBookDTO) {
         return hotelRoomService.createRoomBooked(roomBookDTO)
                 .map(roomBook ->
                         ReactiveResponseHandler.generateResponse("Room Booked Successfully", HttpStatus.CREATED));
