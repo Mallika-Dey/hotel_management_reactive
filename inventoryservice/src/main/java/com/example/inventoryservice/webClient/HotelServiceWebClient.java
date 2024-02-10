@@ -8,5 +8,5 @@ import reactor.core.publisher.Mono;
 
 public interface HotelServiceWebClient {
     public Mono<Void> updateHotelPriceAndAvl(@RequestBody UpdateHotelRequestDTO updateHotelRequestDTO);
-    public Mono<CheckHotelResponseDTO> checkHotelAndRoomType(@RequestBody CheckHotelRequestDTO checkHotelRequestDTO);
+    public Mono<String> checkHotelAndRoomType(@RequestBody CheckHotelRequestDTO checkHotelRequestDTO);
 }

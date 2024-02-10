@@ -5,6 +5,7 @@ import com.example.inventoryservice.dto.request.CreateHotelRoomDTO;
 import com.example.inventoryservice.dto.request.UpdateHotelRequestDTO;
 import com.example.inventoryservice.dto.response.CheckHotelResponseDTO;
 import com.example.inventoryservice.entity.HotelDetails;
+import com.example.inventoryservice.parser.ResponseParser;
 import com.example.inventoryservice.repositories.HotelDetailsRepository;
 import com.example.inventoryservice.services.IHotelRoomService;
 import com.example.inventoryservice.validator.HotelRoomValidator;
@@ -70,7 +71,19 @@ public class HotelRoomService implements IHotelRoomService {
                 .price(createHotelRoomDTO.getPrice())
                 .build();
 
-        return hotelServiceWebClient.checkHotelAndRoomType(request);
+        return hotelServiceWebClient
+                .checkHotelAndRoomType(request)
+                .flatMap(response -> {
+                    Integer hotelId = ResponseParser.parseValue(response, "hotelId", Integer.class);
+                    Integer roomTypeId = ResponseParser.parseValue(response, "roomTypeId", Integer.class);
+
+                    return Mono.just(
+                            CheckHotelResponseDTO
+                            .builder()
+                            .hotelId(hotelId)
+                            .roomTypeId(roomTypeId)
+                            .build());
+                });
     }
 
     private Mono<Void> updateHotelInfoInternalCall(CreateHotelRoomDTO createHotelRoomDTO) {
