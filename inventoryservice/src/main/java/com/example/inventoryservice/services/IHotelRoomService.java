@@ -7,5 +7,7 @@ import reactor.core.publisher.Mono;
 
 public interface IHotelRoomService {
     public Mono<HotelDetails> createHotelRoom(CreateHotelRoomDTO createHotelRoomDTO);
-    public Mono<Void> createRoomBooked(CreateRoomBookDTO createRoomBookDTO);
+
+    //    public Mono<Void> createRoomBooked(CreateRoomBookDTO createRoomBookDTO);
+    public Mono<Integer> createRoomBooked(CreateRoomBookDTO createRoomBookDTO);
 }

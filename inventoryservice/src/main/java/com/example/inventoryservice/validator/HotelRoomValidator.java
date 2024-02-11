@@ -1,7 +1,9 @@
 package com.example.inventoryservice.validator;
 
+import com.example.inventoryservice.entity.HotelDetails;
 import com.example.inventoryservice.exception.CustomException;
 import com.example.inventoryservice.repositories.HotelDetailsRepository;
+import lombok.extern.flogger.Flogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -31,12 +33,13 @@ public class HotelRoomValidator {
                 });
     }
 
-    public Mono<Integer> isHotelRoomExists(Integer hotelId, Integer roomTypeId) {
+    public Mono<HotelDetails> isHotelRoomExists(Integer hotelId, Integer roomTypeId) {
         return hotelDetailsRepository
                 .findByHotelIdAndRoomTypeId(hotelId, roomTypeId)
                 .flatMap(hotelDetails -> {
                     if (hotelDetails != null) {
-                        return Mono.just(hotelDetails.getHotelId());
+                        //return Mono.just(hotelDetails.getHotelId());
+                        return Mono.just(hotelDetails);
                     } else {
                         LOGGER.error("Hotel room not exists");
                         return Mono.error(new CustomException("Hotel room not exists"));

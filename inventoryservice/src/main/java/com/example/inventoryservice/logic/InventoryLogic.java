@@ -7,6 +7,7 @@ import com.example.inventoryservice.mapper.InventoryMapper;
 import com.example.inventoryservice.repositories.HotelDetailsRepository;
 import com.example.inventoryservice.validator.HotelRoomValidator;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Component
@@ -23,12 +24,12 @@ public class InventoryLogic {
 
     public Mono<HotelDetails> dbOperation(CheckHotelResponseDTO hotelResponse, CreateHotelRoomDTO createHotelRoomDTO) {
         Mono<Boolean> validate = hotelRoomValidator
-                .validateHotelByRoomType(hotelResponse.getHotelId(), hotelResponse.getRoomTypeId());
+                .validateHotelByRoomType(hotelResponse.getHotelId(), hotelResponse.getRoomTypeId()).cache();
         Mono<HotelDetails> hotelDetailsMono = hotelDetailsRepository
                 .save(inventoryMapper.mapToHotel(hotelResponse, createHotelRoomDTO))
                 .cache();
         Mono<Void> updateHotel = inventoryMapper.updateHotelInfoInternalCall(createHotelRoomDTO);
 
-        return Mono.zip(validate, hotelDetailsMono, updateHotel).then(hotelDetailsMono);
+        return Flux.concat(validate, hotelDetailsMono, updateHotel).then(hotelDetailsMono);
     }
 }

@@ -42,13 +42,11 @@ public class HotelRoomService implements IHotelRoomService {
                 });
     }
 
-    public Mono<Void> createRoomBooked(CreateRoomBookDTO createRoomBookDTO) {
-        Mono<Integer> p = roomBookValidation(createRoomBookDTO);
-//        return null;
-        return Mono.empty();
+    public Mono<Integer> createRoomBooked(CreateRoomBookDTO createRoomBookDTO) {
+        return roomBookValidation(createRoomBookDTO).map(HotelDetails::getHotelId);
     }
 
-    public Mono<Integer> roomBookValidation(CreateRoomBookDTO createRoomBookDTO) {
+    public Mono<HotelDetails> roomBookValidation(CreateRoomBookDTO createRoomBookDTO) {
         return inventoryMapper.buildInternalCallRequest(
                 createRoomBookDTO.getHotelName(), createRoomBookDTO.getRoomType()
         ).flatMap(hotelAndRoomID -> {
