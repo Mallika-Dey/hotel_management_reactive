@@ -16,6 +16,9 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDate;
+import java.util.Objects;
+
 @Service
 public class HotelRoomService implements IHotelRoomService {
 
@@ -47,11 +50,58 @@ public class HotelRoomService implements IHotelRoomService {
     }
 
     public Flux<RoomBook> createRoomBooked(CreateRoomBookDTO createRoomBookDTO) {
-        Flux<RoomBook> data = roomBookValidation(createRoomBookDTO).flatMapMany(response -> roomBook(response, createRoomBookDTO));
+        Mono<HotelDetails> hotelDetailsMono = roomBookValidation(createRoomBookDTO);
+        Flux<RoomBook> data = hotelDetailsMono
+                .flatMapMany(response -> findBookedRooms(response, createRoomBookDTO));
+        Mono<Boolean> isPossible = hotelDetailsMono
+                .map(response -> isRoomBookPossible(response.getRoomCount(), createRoomBookDTO, data));
+
         return data;
     }
 
-    private Flux<RoomBook> roomBook(HotelDetails response, CreateRoomBookDTO createRoomBookDTO) {
+    private Boolean isRoomBookPossible(Integer roomCount,
+                                       CreateRoomBookDTO createRoomBookDTO, Flux<RoomBook> data) {
+        int[] count = new int[64];
+
+        data.collectList().map(roomBooks -> {
+            return roomBooks.stream().map(roomBook -> {
+                roomAssign(count, roomBook, createRoomBookDTO);
+                return null;
+            });
+        });
+
+        int start = createRoomBookDTO.getStartDate().getDayOfMonth();
+        int end = createRoomBookDTO.getEndDate().getDayOfMonth();
+        while (start <= end) {
+            count[start] += count[start - 1];
+            if (count[start] == roomCount)
+                return false;
+            start++;
+        }
+        return true;
+    }
+
+    private void roomAssign(int[] count, RoomBook roomBook, CreateRoomBookDTO roomBookDTO) {
+        LocalDate startDate = roomBookDTO.getStartDate();
+        LocalDate endDate = roomBookDTO.getEndDate();
+
+        LocalDate lDate = (startDate.isBefore(roomBook.getStartDate())) ?
+                roomBook.getStartDate() : startDate;
+
+        LocalDate rDate = (endDate.isBefore(roomBook.getEndDate())) ?
+                endDate : roomBook.getEndDate();
+
+        if (startDate.getMonth().equals(lDate.getMonth()))
+            count[lDate.getDayOfMonth() + 1]++;
+        else count[startDate.lengthOfMonth() + 1]++;
+
+        if (lDate.getMonth().equals(rDate.getMonth()))
+            count[rDate.getDayOfMonth() + 2]--;
+        else
+            count[lDate.lengthOfMonth() + rDate.getDayOfMonth() + 2]--;
+    }
+
+    private Flux<RoomBook> findBookedRooms(HotelDetails response, CreateRoomBookDTO createRoomBookDTO) {
         return roomBookRepository.findAvailableRoomBooks(response.getHotelId(), createRoomBookDTO.getStartDate(), createRoomBookDTO.getEndDate());
     }
 
