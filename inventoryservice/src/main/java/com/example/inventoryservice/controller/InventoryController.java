@@ -34,7 +34,7 @@ public class InventoryController {
     @PostMapping("/room-book")
     public Mono<ResponseEntity<Object>> createRoomBook(@RequestBody CreateRoomBookDTO roomBookDTO) {
         return hotelRoomService.createRoomBooked(roomBookDTO)
-                .map(response -> ReactiveResponseHandler.generateResponse("successfully booked room", HttpStatus.CREATED, response));
+                .map(response -> ReactiveResponseHandler.generateResponse("successfully booked room", HttpStatus.CREATED));
 
 //        return hotelRoomService.createRoomBooked(roomBookDTO)
 //                .collectList()

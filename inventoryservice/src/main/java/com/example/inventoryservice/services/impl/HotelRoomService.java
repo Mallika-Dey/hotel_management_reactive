@@ -52,19 +52,27 @@ public class HotelRoomService implements IHotelRoomService {
 
     public Mono<RoomBook> createRoomBooked(CreateRoomBookDTO createRoomBookDTO) {
         Mono<HotelDetails> hotelDetailsMono = roomBookValidation(createRoomBookDTO);
-        Flux<RoomBook> data = hotelDetailsMono
-                .flatMapMany(response -> findBookedRooms(response, createRoomBookDTO));
+        int[] count = new int[64];
 
         return hotelDetailsMono
                 .flatMap(response -> {
-                            return isRoomBookPossible(response.getRoomCount(), createRoomBookDTO, data)
-                                    .flatMap(result -> {
-                                        if (result)
+                    //Flux<RoomBook> data = findBookedRooms(response, createRoomBookDTO);
+                    return findBookedRooms(response, createRoomBookDTO).collectList()
+                            .flatMap(data -> {
+                                for (RoomBook roomBook : data) {
+                                    checkRoomAvailability(count, roomBook, createRoomBookDTO);
+                                }
+                                return checkForFreeRoom(createRoomBookDTO, count, response.getRoomCount())
+                                        .flatMap(res -> {
                                             return roomBookRepository.save(bookRoom(createRoomBookDTO, response.getId()));
-                                        return Mono.error(new CustomException("room not available"));
-                                    });
-                        }
-                );
+                                        });
+                            });
+                            /*return isRoomBookPossible(response.getRoomCount(), createRoomBookDTO, data)
+                                    .flatMap(result -> {
+                                        return roomBookRepository.save(bookRoom(createRoomBookDTO, response.getId()));
+                                    });*/
+                })
+                .switchIfEmpty(Mono.error(new CustomException("HotelDetails not found")));
     }
 
     private RoomBook bookRoom(CreateRoomBookDTO createRoomBookDTO, Integer id) {
@@ -80,28 +88,17 @@ public class HotelRoomService implements IHotelRoomService {
                                              CreateRoomBookDTO createRoomBookDTO, Flux<RoomBook> data) {
         int[] count = new int[64];
 
-        return data.collectList().map(roomBooks -> {
-            return roomBooks.stream().map(roomBook -> {
-                return checkRoomAvailability(count, roomBook, createRoomBookDTO)
-                        .flatMap(res -> {
-                            return bookRoom(createRoomBookDTO, count, roomCount);
-                        });
-            });
+        return data.collectList().flatMap(roomBooks -> {
+            System.out.println(roomBooks.size());
+            for (RoomBook roomBook : roomBooks) {
+                checkRoomAvailability(count, roomBook, createRoomBookDTO);
+            }
+            return checkForFreeRoom(createRoomBookDTO, count, roomCount);
+            //return Mono.empty();
         });
-
-//        Mono<Void> roomCalculation = data.collectList().map(roomBooks -> {
-//            return roomBooks.stream().map(roomBook -> {
-//                return checkRoomAvailability(count, roomBook, createRoomBookDTO);
-//            });
-//        }).then();
-//
-//        Mono<Boolean> bookedRoom = bookRoom(createRoomBookDTO, count, roomCount);
-//
-//        return Mono.zip(roomCalculation, bookedRoom).then(bookedRoom);
-
     }
 
-    private Mono<Boolean> bookRoom(CreateRoomBookDTO createRoomBookDTO, int[] count, Integer roomCount) {
+    private Mono<Boolean> checkForFreeRoom(CreateRoomBookDTO createRoomBookDTO, int[] count, Integer roomCount) {
         int start = createRoomBookDTO.getStartDate().getDayOfMonth() + 1;
         int end = createRoomBookDTO.getEndDate().getDayOfMonth() + 1;
 
@@ -110,16 +107,19 @@ public class HotelRoomService implements IHotelRoomService {
 
         while (start <= end) {
             count[start] += count[start - 1];
-            if (count[start] == roomCount)
-                return Mono.just(false);
+            if (count[start] >= roomCount)
+                return Mono.error(new CustomException("Room not available"));
+
             start++;
         }
         return Mono.just(true);
     }
 
-    private Mono<Void> checkRoomAvailability(int[] count, RoomBook roomBook, CreateRoomBookDTO roomBookDTO) {
+    private void checkRoomAvailability(int[] count, RoomBook roomBook, CreateRoomBookDTO roomBookDTO) {
         LocalDate startDate = roomBookDTO.getStartDate();
         LocalDate endDate = roomBookDTO.getEndDate();
+
+        System.out.println("check aoom avail ..................");
 
         LocalDate lDate = (startDate.isBefore(roomBook.getStartDate())) ?
                 roomBook.getStartDate() : startDate;
@@ -129,17 +129,17 @@ public class HotelRoomService implements IHotelRoomService {
 
         if (startDate.getMonth().equals(lDate.getMonth()))
             count[lDate.getDayOfMonth() + 1]++;
-        else count[startDate.lengthOfMonth() + 1]++;
+        else count[lDate.getDayOfMonth() + startDate.lengthOfMonth() + 1]++;
 
-        if (lDate.getMonth().equals(rDate.getMonth()))
+        if (startDate.getMonth().equals(rDate.getMonth()))
             count[rDate.getDayOfMonth() + 2]--;
         else
-            count[lDate.lengthOfMonth() + rDate.getDayOfMonth() + 2]--;
-        return Mono.empty();
+            count[startDate.lengthOfMonth() + rDate.getDayOfMonth() + 2]--;
     }
 
     private Flux<RoomBook> findBookedRooms(HotelDetails response, CreateRoomBookDTO createRoomBookDTO) {
-        return roomBookRepository.findAvailableRoomBooks(response.getHotelId(), createRoomBookDTO.getStartDate(), createRoomBookDTO.getEndDate());
+        //return roomBookRepository.findAvailableRoomBooks(response.getHotelId(), createRoomBookDTO.getStartDate(), createRoomBookDTO.getEndDate());
+        return roomBookRepository.findAll();
     }
 
     public Mono<HotelDetails> roomBookValidation(CreateRoomBookDTO createRoomBookDTO) {

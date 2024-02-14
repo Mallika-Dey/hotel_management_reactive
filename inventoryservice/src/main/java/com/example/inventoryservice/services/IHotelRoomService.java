@@ -11,5 +11,5 @@ public interface IHotelRoomService {
     public Mono<HotelDetails> createHotelRoom(CreateHotelRoomDTO createHotelRoomDTO);
 
     public Mono<RoomBook> createRoomBooked(CreateRoomBookDTO createRoomBookDTO);
-//    public Flux<RoomBook> createRoomBooked(CreateRoomBookDTO createRoomBookDTO);
+//    public Mono<Void> createRoomBooked(CreateRoomBookDTO createRoomBookDTO);
 }
