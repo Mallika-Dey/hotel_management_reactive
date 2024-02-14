@@ -33,19 +33,19 @@ public class InventoryController {
 
     @PostMapping("/room-book")
     public Mono<ResponseEntity<Object>> createRoomBook(@RequestBody CreateRoomBookDTO roomBookDTO) {
-//        Flux<RoomBook> roomBookFlux = hotelRoomService.createRoomBooked(roomBookDTO);
-//        return Mono.just(ReactiveResponseHandler.generateResponse("Room Booked Successfully", HttpStatus.CREATED,
-//                roomBookFlux.subscribe(RoomBook::getId)));
         return hotelRoomService.createRoomBooked(roomBookDTO)
-                .collectList()
-                .map(roomBooks -> {
-                    List<Integer> roomBookIds = roomBooks.stream()
-                            .map(RoomBook::getId)
-                            .collect(Collectors.toList());
-                    return ReactiveResponseHandler.generateResponse(
-                            "Room Booked Successfully",
-                            HttpStatus.CREATED,
-                            roomBookIds);
-                });
+                .map(response -> ReactiveResponseHandler.generateResponse("successfully booked room", HttpStatus.CREATED, response));
+
+//        return hotelRoomService.createRoomBooked(roomBookDTO)
+//                .collectList()
+//                .map(roomBooks -> {
+//                    List<Integer> roomBookIds = roomBooks.stream()
+//                            .map(RoomBook::getId)
+//                            .collect(Collectors.toList());
+//                    return ReactiveResponseHandler.generateResponse(
+//                            "Room Booked Successfully",
+//                            HttpStatus.CREATED,
+//                            roomBookIds);
+//                });
     }
 }

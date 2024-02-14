@@ -10,6 +10,6 @@ import reactor.core.publisher.Mono;
 public interface IHotelRoomService {
     public Mono<HotelDetails> createHotelRoom(CreateHotelRoomDTO createHotelRoomDTO);
 
-    //    public Mono<Void> createRoomBooked(CreateRoomBookDTO createRoomBookDTO);
-    public Flux<RoomBook> createRoomBooked(CreateRoomBookDTO createRoomBookDTO);
+    public Mono<RoomBook> createRoomBooked(CreateRoomBookDTO createRoomBookDTO);
+//    public Flux<RoomBook> createRoomBooked(CreateRoomBookDTO createRoomBookDTO);
 }

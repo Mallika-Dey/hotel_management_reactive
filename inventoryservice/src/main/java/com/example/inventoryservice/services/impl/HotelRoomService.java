@@ -5,6 +5,7 @@ import com.example.inventoryservice.dto.request.CreateRoomBookDTO;
 import com.example.inventoryservice.dto.response.CheckHotelResponseDTO;
 import com.example.inventoryservice.entity.HotelDetails;
 import com.example.inventoryservice.entity.RoomBook;
+import com.example.inventoryservice.exception.CustomException;
 import com.example.inventoryservice.logic.InventoryLogic;
 import com.example.inventoryservice.mapper.InventoryMapper;
 import com.example.inventoryservice.repositories.RoomBookRepository;
@@ -49,39 +50,74 @@ public class HotelRoomService implements IHotelRoomService {
                 });
     }
 
-    public Flux<RoomBook> createRoomBooked(CreateRoomBookDTO createRoomBookDTO) {
+    public Mono<RoomBook> createRoomBooked(CreateRoomBookDTO createRoomBookDTO) {
         Mono<HotelDetails> hotelDetailsMono = roomBookValidation(createRoomBookDTO);
         Flux<RoomBook> data = hotelDetailsMono
                 .flatMapMany(response -> findBookedRooms(response, createRoomBookDTO));
-        Mono<Boolean> isPossible = hotelDetailsMono
-                .map(response -> isRoomBookPossible(response.getRoomCount(), createRoomBookDTO, data));
 
-        return data;
+        return hotelDetailsMono
+                .flatMap(response -> {
+                            return isRoomBookPossible(response.getRoomCount(), createRoomBookDTO, data)
+                                    .flatMap(result -> {
+                                        if (result)
+                                            return roomBookRepository.save(bookRoom(createRoomBookDTO, response.getId()));
+                                        return Mono.error(new CustomException("room not available"));
+                                    });
+                        }
+                );
     }
 
-    private Boolean isRoomBookPossible(Integer roomCount,
-                                       CreateRoomBookDTO createRoomBookDTO, Flux<RoomBook> data) {
+    private RoomBook bookRoom(CreateRoomBookDTO createRoomBookDTO, Integer id) {
+        return RoomBook
+                .builder()
+                .hotelDetailsId(id)
+                .startDate(createRoomBookDTO.getStartDate())
+                .endDate(createRoomBookDTO.getEndDate())
+                .build();
+    }
+
+    private Mono<Boolean> isRoomBookPossible(Integer roomCount,
+                                             CreateRoomBookDTO createRoomBookDTO, Flux<RoomBook> data) {
         int[] count = new int[64];
 
-        data.collectList().map(roomBooks -> {
+        return data.collectList().map(roomBooks -> {
             return roomBooks.stream().map(roomBook -> {
-                roomAssign(count, roomBook, createRoomBookDTO);
-                return null;
+                return checkRoomAvailability(count, roomBook, createRoomBookDTO)
+                        .flatMap(res -> {
+                            return bookRoom(createRoomBookDTO, count, roomCount);
+                        });
             });
         });
 
-        int start = createRoomBookDTO.getStartDate().getDayOfMonth();
-        int end = createRoomBookDTO.getEndDate().getDayOfMonth();
+//        Mono<Void> roomCalculation = data.collectList().map(roomBooks -> {
+//            return roomBooks.stream().map(roomBook -> {
+//                return checkRoomAvailability(count, roomBook, createRoomBookDTO);
+//            });
+//        }).then();
+//
+//        Mono<Boolean> bookedRoom = bookRoom(createRoomBookDTO, count, roomCount);
+//
+//        return Mono.zip(roomCalculation, bookedRoom).then(bookedRoom);
+
+    }
+
+    private Mono<Boolean> bookRoom(CreateRoomBookDTO createRoomBookDTO, int[] count, Integer roomCount) {
+        int start = createRoomBookDTO.getStartDate().getDayOfMonth() + 1;
+        int end = createRoomBookDTO.getEndDate().getDayOfMonth() + 1;
+
+        if (createRoomBookDTO.getStartDate().getMonth() != createRoomBookDTO.getStartDate().getMonth())
+            end = createRoomBookDTO.getStartDate().lengthOfMonth() + end;
+
         while (start <= end) {
             count[start] += count[start - 1];
             if (count[start] == roomCount)
-                return false;
+                return Mono.just(false);
             start++;
         }
-        return true;
+        return Mono.just(true);
     }
 
-    private void roomAssign(int[] count, RoomBook roomBook, CreateRoomBookDTO roomBookDTO) {
+    private Mono<Void> checkRoomAvailability(int[] count, RoomBook roomBook, CreateRoomBookDTO roomBookDTO) {
         LocalDate startDate = roomBookDTO.getStartDate();
         LocalDate endDate = roomBookDTO.getEndDate();
 
@@ -99,6 +135,7 @@ public class HotelRoomService implements IHotelRoomService {
             count[rDate.getDayOfMonth() + 2]--;
         else
             count[lDate.lengthOfMonth() + rDate.getDayOfMonth() + 2]--;
+        return Mono.empty();
     }
 
     private Flux<RoomBook> findBookedRooms(HotelDetails response, CreateRoomBookDTO createRoomBookDTO) {
