@@ -78,10 +78,10 @@ public class HotelRoomService implements IHotelRoomService {
     }
 
     private Mono<Boolean> checkForFreeRoom(CreateRoomBookDTO createRoomBookDTO, int[] count, Integer roomCount) {
-        int start = createRoomBookDTO.getStartDate().getDayOfMonth() + 1;
-        int end = createRoomBookDTO.getEndDate().getDayOfMonth() + 1;
+        int start = createRoomBookDTO.getStartDate().getDayOfMonth();
+        int end = createRoomBookDTO.getEndDate().getDayOfMonth();
 
-        if (createRoomBookDTO.getStartDate().getMonth() != createRoomBookDTO.getStartDate().getMonth())
+        if (createRoomBookDTO.getStartDate().getMonth() != createRoomBookDTO.getEndDate().getMonth())
             end = createRoomBookDTO.getStartDate().lengthOfMonth() + end;
 
         while (start <= end) {
