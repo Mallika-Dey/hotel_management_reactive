@@ -105,13 +105,13 @@ public class HotelRoomService implements IHotelRoomService {
                 endDate : roomBook.getEndDate();
 
         if (startDate.getMonth().equals(lDate.getMonth()))
-            count[lDate.getDayOfMonth() + 1]++;
-        else count[lDate.getDayOfMonth() + startDate.lengthOfMonth() + 1]++;
+            count[lDate.getDayOfMonth()]++;
+        else count[lDate.getDayOfMonth() + startDate.lengthOfMonth()]++;
 
         if (startDate.getMonth().equals(rDate.getMonth()))
-            count[rDate.getDayOfMonth() + 2]--;
+            count[rDate.getDayOfMonth() + 1]--;
         else
-            count[startDate.lengthOfMonth() + rDate.getDayOfMonth() + 2]--;
+            count[startDate.lengthOfMonth() + rDate.getDayOfMonth() + 1]--;
     }
 
     private Flux<RoomBook> findBookedRooms(HotelDetails response, CreateRoomBookDTO createRoomBookDTO) {
