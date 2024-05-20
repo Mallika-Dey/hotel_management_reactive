@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Builder
@@ -22,8 +24,8 @@ public class RoomBook {
     private Integer hotelDetailsId;
 
     @Column("start_date")
-    private LocalDateTime startDate;
+    private LocalDate startDate;
 
     @Column("end_date")
-    private LocalDateTime endDate;
+    private LocalDate endDate;
 }

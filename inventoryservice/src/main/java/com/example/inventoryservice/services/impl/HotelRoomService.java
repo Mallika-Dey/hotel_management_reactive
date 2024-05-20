@@ -1,39 +1,46 @@
 package com.example.inventoryservice.services.impl;
 
-import com.example.inventoryservice.dto.request.CheckHotelRequestDTO;
 import com.example.inventoryservice.dto.request.CreateHotelRoomDTO;
-import com.example.inventoryservice.dto.request.UpdateHotelRequestDTO;
-import com.example.inventoryservice.dto.response.CheckHotelResponseDTO;
+import com.example.inventoryservice.dto.request.CreateRoomBookDTO;
 import com.example.inventoryservice.entity.HotelDetails;
-import com.example.inventoryservice.parser.ResponseParser;
-import com.example.inventoryservice.repositories.HotelDetailsRepository;
+import com.example.inventoryservice.entity.RoomBook;
+import com.example.inventoryservice.exception.CustomException;
+import com.example.inventoryservice.logic.InventoryLogic;
+import com.example.inventoryservice.mapper.InventoryMapper;
+import com.example.inventoryservice.repositories.RoomBookRepository;
 import com.example.inventoryservice.services.IHotelRoomService;
 import com.example.inventoryservice.validator.HotelRoomValidator;
-import com.example.inventoryservice.webClient.HotelServiceWebClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.time.LocalDate;
 
 @Service
 public class HotelRoomService implements IHotelRoomService {
 
-    private final HotelDetailsRepository hotelDetailsRepository;
-    private final HotelServiceWebClient hotelServiceWebClient;
+    private final InventoryMapper inventoryMapper;
+    private final InventoryLogic inventoryLogic;
     private final HotelRoomValidator hotelRoomValidator;
+    private final RoomBookRepository roomBookRepository;
     private static final Logger logger = LoggerFactory.getLogger(HotelRoomService.class);
 
-    public HotelRoomService(HotelDetailsRepository hotelDetailsRepository, HotelServiceWebClient hotelServiceWebClient, HotelRoomValidator hotelRoomValidator) {
-        this.hotelDetailsRepository = hotelDetailsRepository;
-        this.hotelServiceWebClient = hotelServiceWebClient;
+    public HotelRoomService(InventoryMapper inventoryMapper,
+                            InventoryLogic inventoryLogic, HotelRoomValidator hotelRoomValidator, RoomBookRepository roomBookRepository) {
+        this.inventoryMapper = inventoryMapper;
+        this.inventoryLogic = inventoryLogic;
         this.hotelRoomValidator = hotelRoomValidator;
+        this.roomBookRepository = roomBookRepository;
     }
 
     public Mono<HotelDetails> createHotelRoom(CreateHotelRoomDTO createHotelRoomDTO) {
 
-        return buildInternalCallRequest(createHotelRoomDTO)
+        return inventoryMapper.buildInternalCallRequest(
+                        createHotelRoomDTO.getHotelName(), createHotelRoomDTO.getRoomType())
                 .flatMap(hotelResponse -> {
-                    return dbOperation(hotelResponse, createHotelRoomDTO);
+                    return inventoryLogic.dbOperation(hotelResponse, createHotelRoomDTO);
                 })
                 .doOnRequest(l -> logger.debug("Hotel Create start processing"))
                 .doOnSuccess(hotel -> {
@@ -41,57 +48,82 @@ public class HotelRoomService implements IHotelRoomService {
                 });
     }
 
-    private Mono<HotelDetails> dbOperation(CheckHotelResponseDTO hotelResponse, CreateHotelRoomDTO createHotelRoomDTO) {
-        Mono<Boolean> validate = hotelRoomValidator
-                .validateHotelByRoomType(hotelResponse.getHotelId(), hotelResponse.getRoomTypeId());
-        Mono<HotelDetails> hotelDetailsMono = hotelDetailsRepository
-                .save(mapToHotel(hotelResponse, createHotelRoomDTO))
-                .cache();
-        Mono<Void> updateHotel = updateHotelInfoInternalCall(createHotelRoomDTO);
+    public Mono<RoomBook> createRoomBooked(CreateRoomBookDTO createRoomBookDTO) {
+        Mono<HotelDetails> hotelDetailsMono = roomBookValidation(createRoomBookDTO);
+        int[] count = new int[64];
 
-        return Mono.zip(validate, hotelDetailsMono, updateHotel).then(hotelDetailsMono);
-    }
-
-    private HotelDetails mapToHotel(CheckHotelResponseDTO hotelResponse,
-                                    CreateHotelRoomDTO createHotelRoomDTO) {
-        return HotelDetails
-                .builder()
-                .hotelId(hotelResponse.getHotelId())
-                .roomTypeId(hotelResponse.getRoomTypeId())
-                .roomCount(createHotelRoomDTO.getRoomCount())
-                .price(createHotelRoomDTO.getPrice())
-                .build();
-    }
-
-    private Mono<CheckHotelResponseDTO> buildInternalCallRequest(CreateHotelRoomDTO createHotelRoomDTO) {
-        CheckHotelRequestDTO request = CheckHotelRequestDTO
-                .builder()
-                .hotelName(createHotelRoomDTO.getHotelName())
-                .roomType(createHotelRoomDTO.getRoomType())
-                .price(createHotelRoomDTO.getPrice())
-                .build();
-
-        return hotelServiceWebClient
-                .checkHotelAndRoomType(request)
+        return hotelDetailsMono
                 .flatMap(response -> {
-                    Integer hotelId = ResponseParser.parseValue(response, "hotelId", Integer.class);
-                    Integer roomTypeId = ResponseParser.parseValue(response, "roomTypeId", Integer.class);
-
-                    return Mono.just(
-                            CheckHotelResponseDTO
-                            .builder()
-                            .hotelId(hotelId)
-                            .roomTypeId(roomTypeId)
-                            .build());
-                });
+                    return findBookedRooms(response, createRoomBookDTO).collectList()
+                            .flatMap(data -> {
+                                for (RoomBook roomBook : data) {
+                                    checkRoomAvailability(count, roomBook, createRoomBookDTO);
+                                }
+                                return checkForFreeRoom(createRoomBookDTO, count, response.getRoomCount())
+                                        .flatMap(res -> {
+                                            return roomBookRepository.save(bookRoom(createRoomBookDTO, response.getId()));
+                                        });
+                            });
+                })
+                .switchIfEmpty(Mono.error(new CustomException("HotelDetails not found")));
     }
 
-    private Mono<Void> updateHotelInfoInternalCall(CreateHotelRoomDTO createHotelRoomDTO) {
-        UpdateHotelRequestDTO request = UpdateHotelRequestDTO
+    private RoomBook bookRoom(CreateRoomBookDTO createRoomBookDTO, Integer id) {
+        return RoomBook
                 .builder()
-                .hotelName(createHotelRoomDTO.getHotelName())
-                .price(createHotelRoomDTO.getPrice())
+                .hotelDetailsId(id)
+                .startDate(createRoomBookDTO.getStartDate())
+                .endDate(createRoomBookDTO.getEndDate())
                 .build();
-        return hotelServiceWebClient.updateHotelPriceAndAvl(request);
+    }
+
+    private Mono<Boolean> checkForFreeRoom(CreateRoomBookDTO createRoomBookDTO, int[] count, Integer roomCount) {
+        int start = createRoomBookDTO.getStartDate().getDayOfMonth();
+        int end = createRoomBookDTO.getEndDate().getDayOfMonth();
+
+        if (createRoomBookDTO.getStartDate().getMonth() != createRoomBookDTO.getEndDate().getMonth())
+            end = createRoomBookDTO.getStartDate().lengthOfMonth() + end;
+
+        while (start <= end) {
+            count[start] += count[start - 1];
+            if (count[start] >= roomCount)
+                return Mono.error(new CustomException("Room not available"));
+
+            start++;
+        }
+        return Mono.just(true);
+    }
+
+    private void checkRoomAvailability(int[] count, RoomBook roomBook, CreateRoomBookDTO roomBookDTO) {
+        LocalDate startDate = roomBookDTO.getStartDate();
+        LocalDate endDate = roomBookDTO.getEndDate();
+
+        LocalDate lDate = (startDate.isBefore(roomBook.getStartDate())) ?
+                roomBook.getStartDate() : startDate;
+
+        LocalDate rDate = (endDate.isBefore(roomBook.getEndDate())) ?
+                endDate : roomBook.getEndDate();
+
+        if (startDate.getMonth().equals(lDate.getMonth()))
+            count[lDate.getDayOfMonth()]++;
+        else count[lDate.getDayOfMonth() + startDate.lengthOfMonth()]++;
+
+        if (startDate.getMonth().equals(rDate.getMonth()))
+            count[rDate.getDayOfMonth() + 1]--;
+        else
+            count[startDate.lengthOfMonth() + rDate.getDayOfMonth() + 1]--;
+    }
+
+    private Flux<RoomBook> findBookedRooms(HotelDetails response, CreateRoomBookDTO createRoomBookDTO) {
+        return roomBookRepository.findAvailableRoomBooks(response.getId(),
+                createRoomBookDTO.getStartDate(), createRoomBookDTO.getEndDate());
+    }
+
+    public Mono<HotelDetails> roomBookValidation(CreateRoomBookDTO createRoomBookDTO) {
+        return inventoryMapper.buildInternalCallRequest(
+                createRoomBookDTO.getHotelName(), createRoomBookDTO.getRoomType()
+        ).flatMap(hotelAndRoomID -> {
+            return hotelRoomValidator.isHotelRoomExists(hotelAndRoomID.getHotelId(), hotelAndRoomID.getRoomTypeId());
+        });
     }
 }

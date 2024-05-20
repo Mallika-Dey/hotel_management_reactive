@@ -1,6 +1,7 @@
 package com.example.inventoryservice.controller;
 
 import com.example.inventoryservice.dto.request.CreateHotelRoomDTO;
+import com.example.inventoryservice.dto.request.CreateRoomBookDTO;
 import com.example.inventoryservice.response.ReactiveResponseHandler;
 import com.example.inventoryservice.services.IHotelRoomService;
 import org.springframework.http.HttpStatus;
@@ -19,8 +20,14 @@ public class InventoryController {
     }
 
     @PostMapping("/create-room")
-    public Mono<ResponseEntity<Object>> createHotelRoom(@RequestBody CreateHotelRoomDTO hotelRoomDTO){
+    public Mono<ResponseEntity<Object>> createHotelRoom(@RequestBody CreateHotelRoomDTO hotelRoomDTO) {
         return hotelRoomService.createHotelRoom(hotelRoomDTO)
                 .map(hotelDetails -> ReactiveResponseHandler.generateResponse("Room create Successfully", HttpStatus.CREATED));
+    }
+
+    @PostMapping("/room-book")
+    public Mono<ResponseEntity<Object>> createRoomBook(@RequestBody CreateRoomBookDTO roomBookDTO) {
+        return hotelRoomService.createRoomBooked(roomBookDTO)
+                .map(response -> ReactiveResponseHandler.generateResponse("successfully booked room", HttpStatus.CREATED));
     }
 }
